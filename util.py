@@ -18,6 +18,37 @@ def main(argv):
 		print_usage()
 		sys.exit(1)
 	
+	#Assign args/flags based on arguments received
+	for opt, arg in opts:
+		if opt == "-h":
+			print_usage()
+			sys.exit()
+		elif opt == "-f" or opt == "--first":
+			try:
+				numFirst=int(arg)
+			except ValueError:
+				print("Invalid value for argument "+opt)
+				print_usage()
+				sys.exit(1)
+		elif opt == "-l" or opt == "--last":
+			try:
+				numLast=int(arg)
+			except ValueError:				
+				print("Invalid value for argument "+opt)
+				print_usage()
+				sys.exit(1)
+		elif opt == "-t" or opt == "--timestamps":
+			timestampFlag=True
+		elif opt == "-i" or opt == "--ipv4":
+			ipv4Flag=True
+		elif opt == "-I" or opt == "--ipv6":
+			ipv6Flag=True
+		elif opt == "-m" or opt == "--ipv4m":
+			ipv4Flag=True
+			ipv4String=arg
+		elif opt == "-M" or opt == "--ipv6m":
+			ipv6Flag=True
+			ipv6String=arg
 
 	#Validate file presence
 	lines=[]
@@ -34,27 +65,7 @@ def main(argv):
 	except Exception as e:
    		print("Unexpected error: "+str(e))
 
-   	#Assign args/flags based on arguments received
-	for opt, arg in opts:
-		if opt == "-h":
-			print_usage()
-			sys.exit()
-		elif opt == "-f" or opt == "--first":
-			numFirst=int(arg)
-		elif opt == "-l" or opt == "--last":
-			numLast=int(arg)
-		elif opt == "-t" or opt == "--timestamps":
-			timestampFlag=True
-		elif opt == "-i" or opt == "--ipv4":
-			ipv4Flag=True
-		elif opt == "-I" or opt == "--ipv6":
-			ipv6Flag=True
-		elif opt == "-m" or opt == "--ipv4m":
-			ipv4Flag=True
-			ipv4String=arg
-		elif opt == "-M" or opt == "--ipv6m":
-			ipv6Flag=True
-			ipv6String=arg
+   	
 
 	#Set header and footer "bucket" limits, if no options were given
 	if numFirst==-1:
@@ -121,7 +132,9 @@ def main(argv):
 			#Highlight line if match
 			for idx,line in enumerate(lines):
 				if re.search(match_expr,line):
-					lines[idx]="[IPV6 MATCH]"+lines[idx]+"[IPV6 MATCH]"
+					print(lines[idx])
+					lines[idx]="[IPV6 MATCH]"+lines[idx]+"[IPV6 MATCH]"					
+					print(lines[idx])
 
 	#Exit if intersection is empty
 	check_no_intersect(lines)
@@ -133,14 +146,14 @@ def print_usage():
 \n\
 Supported options:\n\
 ---------------------\n\
-	- h, --help Print help\n\
-	- f, --first NUM Print first NUM lines\n\
-	- l, --last NUM Print last NUM lines\n\
-	- t, --timestamps Print lines that contain a timestamp in HH:MM:SS format\n\
-	- i, --ipv4 Print lines that contain an IPv4 address\n\
-	- I, --ipv6 Print lines that contain an IPv6 address (standard notation)\n\
-	- m, --ipv4m Print lines that contain an IPv4 address, matching IPs are highlighted\n\
-	- M, --ipv6m Print lines that contain an IPv6 address (standard notation), matching IPs are highlighted\n")
+	-h, --help Print help\n\
+	-f, --first NUM Print first NUM lines\n\
+	-l, --last NUM Print last NUM lines\n\
+	-t, --timestamps Print lines that contain a timestamp in HH:MM:SS format\n\
+	-i, --ipv4 Print lines that contain an IPv4 address\n\
+	-I, --ipv6 Print lines that contain an IPv6 address (standard notation)\n\
+	-m, --ipv4m Print lines that contain an IPv4 address, matching IPs are highlighted\n\
+	-M, --ipv6m Print lines that contain an IPv6 address (standard notation), matching IPs are highlighted\n")
 
 def check_no_intersect(lines):
 	if lines==[]:
