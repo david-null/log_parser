@@ -81,7 +81,7 @@ def main(argv):
 	#if ipv4Flag is set, check for matches with [0-255].[0-255].[0-255].[0-255]
 	if ipv4Flag:
 		lines=match_regex_lines("((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.)){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)",lines)
-		#Check for wildcard in ip match argument string
+		#Check for wildcard in ip match argument string to highlight
 		if ipv4String != "":
 			match_expr=""
 			for idx,substring in enumerate(ipv4String.split(".")):
@@ -95,6 +95,7 @@ def main(argv):
 						match_expr+=substring
 					else:
 						match_expr+=substring+"."
+			#Highlight line if match
 			for idx,line in enumerate(lines):
 				if re.search(match_expr,line):
 					lines[idx]="[IPV4 MATCH]"+lines[idx]+"[IPV4 MATCH]"
@@ -103,7 +104,7 @@ def main(argv):
 	#if ipv6Flag is set, check for matches with [0000-ffff]:[0000-ffff]:[0000-ffff]:[0000-ffff]:[0000-ffff]:[0000-ffff]:[0000-ffff]:[0000-ffff]
 	if ipv6Flag:
 		lines=match_regex_lines("((([0-9]|[a-f]|[A-F]){4})(\:)){7}((([0-9]|[a-f]|[A-F]){4}))",lines)
-		#Check for wildcard in ip match argument string
+		#Check for wildcard in ip match argument string to highlight
 		if ipv6String != "":
 			match_expr=""
 			for idx,substring in enumerate(ipv6String.split(":")):
@@ -117,6 +118,7 @@ def main(argv):
 						match_expr+=substring
 					else:
 						match_expr+=substring+":"
+			#Highlight line if match
 			for idx,line in enumerate(lines):
 				if re.search(match_expr,line):
 					lines[idx]="[IPV6 MATCH]"+lines[idx]+"[IPV6 MATCH]"
@@ -125,8 +127,6 @@ def main(argv):
 	check_no_intersect(lines)
 
 	print_log(lines)
-
-
 
 def print_usage():
 	print("Usage: python3 util.py [OPTION]... [FILE]\n\
