@@ -50,13 +50,11 @@ def main(argv):
 		elif opt == "-I" or opt == "--ipv6":
 			ipv6Flag=True
 		elif opt == "-m" or opt == "--ipv4m":
+			ipv4Flag=True
 			ipv4String=arg
 		elif opt == "-M" or opt == "--ipv6m":
+			ipv6Flag=True
 			ipv6String=arg
-
-	#print([numFirst,numLast])
-	#print(str(timestampFlag)+","+str(ipv4Flag)+","+str(ipv6Flag))
-	#print(ipv4String+","+ipv6String)
 
 	#Set header and footer "bucket" limits, if no options were given
 	if numFirst==-1:
@@ -66,25 +64,67 @@ def main(argv):
 
 	#check no intersection with header and footer limits
 	if numFirst+numLast<=len(lines):
-		print_no_intersect()
+		lines=[]
+		check_no_intersect(lines)
 
 	#break down based on header/footer limits
 	lines=lines[len(lines)-numLast:numFirst]
 
-	res_lines=[]
 
 	#if timestampflag is set, check for matches with HH:MM:SS
-	if timestampFlag:
-		for line in lines:
-			if re.search("([01]\d|2[0-3]):([0-5][0-9]):([0-5][0-9])",line):
-				res_lines+=line
-		lines=res_lines
+	if timestampFlag:		
+		lines=match_regex_lines("([01]\d|2[0-3]):([0-5][0-9]):([0-5][0-9])",lines)
 
 	#Exit if intersection is empty
+	check_no_intersect(lines)
+ 
+	#if ipv4Flag is set, check for matches with [0-255].[0-255].[0-255].[0-255]
+	if ipv4Flag:
+		lines=match_regex_lines("((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.)){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)",lines)
+		#Check for wildcard in ip match argument string
+		if ipv4String != "":
+			match_expr=""
+			for idx,substring in enumerate(ipv4String.split(".")):
+				if substring=="*":
+					if idx==3: #end token
+						match_expr+="(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"
+					else:						
+						match_expr+="((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.))"
+				else:
+					if idx==3:
+						match_expr+=substring
+					else:
+						match_expr+=substring+"."
+			for idx,line in enumerate(lines):
+				if re.search(match_expr,line):
+					lines[idx]="[IPV4 MATCH]"+lines[idx]+"[IPV4 MATCH]"
 
-	if lines==[]:
-		print_no_intersect()
 
+	#if ipv6Flag is set, check for matches with [0000-ffff]:[0000-ffff]:[0000-ffff]:[0000-ffff]:[0000-ffff]:[0000-ffff]:[0000-ffff]:[0000-ffff]
+	if ipv6Flag:
+		lines=match_regex_lines("((([0-9]|[a-f]|[A-F]){4})(\:)){7}((([0-9]|[a-f]|[A-F]){4}))",lines)
+		#Check for wildcard in ip match argument string
+		if ipv6String != "":
+			match_expr=""
+			for idx,substring in enumerate(ipv6String.split(":")):
+				if substring=="*":
+					if idx==7: #end token
+						match_expr+="(([0-9]|[a-f]|[A-F]){4})"
+					else:						
+						match_expr+="((([0-9]|[a-f]|[A-F]){4})(\:))"
+				else:
+					if idx==7:
+						match_expr+=substring
+					else:
+						match_expr+=substring+":"
+			for idx,line in enumerate(lines):
+				if re.search(match_expr,line):
+					lines[idx]="[IPV6 MATCH]"+lines[idx]+"[IPV6 MATCH]"
+
+	#Exit if intersection is empty
+	check_no_intersect(lines)
+
+	print_log(lines)
 
 
 
@@ -102,13 +142,21 @@ Supported options:\n\
 	- m, --ipv4m Print lines that contain an IPv4 address, matching IPs are highlighted\n\
 	- M, --ipv6m Print lines that contain an IPv6 address (standard notation), matching IPs are highlighted\n")
 
-def print_no_intersect():
-	print("No lines found in log file with current options!")
-	sys.exit()
+def check_no_intersect(lines):
+	if lines==[]:
+		print("No lines found in log file with current options!")
+		sys.exit()
 
 def print_log(lines):
 	for line in lines:
 		print(line)
+
+def match_regex_lines(expr,lines):
+	res_lines=[]
+	for line in lines:
+		if re.search(expr,line):
+			res_lines.append(line)
+	return res_lines
 
 if __name__ == "__main__":
    main(sys.argv[1:])
