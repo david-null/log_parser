@@ -1,17 +1,70 @@
 log parsing utility v1.02:
 ==========================================================================x	
 
-Usage: python3 /util.py [OPTION]... [FILE]
+Usage: ./util.py [OPTION]... [FILE]
 Supported options:
 ---------------------
 -h, --help Print help
 -f, --first NUM Print first NUM lines
 -l, --last NUM Print last NUM lines
 -t, --timestamps Print lines that contain a timestamp in HH:MM:SSformat
--i, --ipv4 Print lines that contain an IPv4 address, matching IPs are highlighted
--I, --ipv6 Print lines that contain an IPv6 address (standard notation), matching IPs are highlighted
--m, --ipv4m Print lines that contain an IPv4 address, matching IPs are highlighted
--M, --ipv6m Print lines that contain an IPv6 address (standard notation), matching IPs are highlighted
+-i, --ipv4 Print lines that contain an IPv4 address
+-I, --ipv6 Print lines that contain an IPv6 address (standard notation)
+-m, --ipv4m Print lines that contain an IPv4 address, matching IPs are highlighted, accepts wildcards
+-M, --ipv6m Print lines that contain an IPv6 address (standard notation), matching IPs are highlighted, accepts wildcards
 
 If FILE is omitted, standard input is used instead.
 If multiple options are used at once, the result is the intersection of their results. The first and last lines arguments are given highest priority before additional filtering is done.
+
+
+Test Suite:
+---------------------
+test01.log - Simple log file with line numbers listed for testing -f, -l
+test02.log - Simple log file with line numbers listed for testing -f, -l, -t
+test03.log - Simple log file with line numbers listed for testing -f, -l, -i, -I, -m, -M
+test04.log - Simple log file with line numbers listed for testing -f, -l, -t, -i, -I, -m, -M
+
+test05.log - Large log file from one of my projects, contains timestamps
+test06.log - Large log file frin one of my projects, containts timestamps, ip addresses
+
+Examples:
+---------------------
+
+cat test-suite/test01.log | ./util.py -f 8 -l 5
+This is a test message line 6
+This is a test message line 7
+This is a test message line 8
+
+---------------------
+
+./util.py -t test-suite/test02.log
+02:32:17 This is a test message line 3
+11:21:39 This is a test message line 7
+
+---------------------
+
+./util.py -i test-suite/test03.log
+This is a test message 10.56.75.32, line 1
+This is a test message 10.56.73.32, line 2
+This is a test message 2001:0DBD:0000:0000:0000:8a2e:0373:7334 from 10.56.75.32, line 6
+
+./util.py -m 10.56.75.32 test-suite/test03.log ---> Use direct matching to highlight
+[IPV4 MATCH]This is a test message 10.56.75.32, line 1
+This is a test message 10.56.73.32, line 2
+[IPV4 MATCH]This is a test message 2001:0DBD:0000:0000:0000:8a2e:0373:7334 from 10.56.75.32, line 6
+
+./util.py -m 10.56.*.32 test-suite/test03.log  ---> Use wildcard matching to highlight
+[IPV4 MATCH]This is a test message 10.56.75.32, line 1
+[IPV4 MATCH]This is a test message 10.56.73.32, line 2
+[IPV4 MATCH]This is a test message 2001:0DBD:0000:0000:0000:8a2e:0373:7334 from 10.56.75.32, line 6
+
+./util.py -I test-suite/test03.log
+This is a test message 2001:0DBD:0000:0000:0000:8a2e:0370:7334, line 3
+This is a test message 2001:0DBD:0000:0000:0000:8a2e:0371:7234, line 4
+This is a test message 2001:0DBD:0000:0000:0000:8a2e:0372:7434, line 5
+This is a test message 2001:0DBD:0000:0000:0000:8a2e:0373:7334 from 10.56.75.32, line 6
+
+./util.py -i -I test-suite/test03.log
+This is a test message 2001:0DBD:0000:0000:0000:8a2e:0373:7334 from 10.56.75.32, line 6
+
+---------------------

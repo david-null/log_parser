@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import sys, getopt, re
 
 def main(argv):
@@ -58,9 +60,13 @@ def main(argv):
 			lines = [line.rstrip('\n') for line in fp]
 	except IndexError:
 		#print("File argument missing, reading from standard input....")
+		if sys.stdin.isatty():
+			print("File argument missing and no input received from stdin, exiting!")
+			sys.exit(1)
 		lines=[line.rstrip('\n') for line in sys.stdin]
 	except IOError:
-		print("File not found!\n")
+		print("File not found!")
+		print_usage()
 		sys.exit(1)
 	except Exception as e:
    		print("Unexpected error: "+str(e))
@@ -91,14 +97,14 @@ def main(argv):
  
 	#if ipv4Flag is set, check for matches with [0-255].[0-255].[0-255].[0-255]
 	if ipv4Flag:
-		lines=match_regex_lines("((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.)){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)",lines)
+		lines=match_regex_lines("((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.)){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\D+)",lines)
 		#Check for wildcard in ip match argument string to highlight
 		if ipv4String != "":
 			match_expr=""
 			for idx,substring in enumerate(ipv4String.split(".")):
 				if substring=="*":
 					if idx==3: #end token
-						match_expr+="(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"
+						match_expr+="(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\D+)"
 					else:						
 						match_expr+="((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.))"
 				else:
@@ -109,7 +115,7 @@ def main(argv):
 			#Highlight line if match
 			for idx,line in enumerate(lines):
 				if re.search(match_expr,line):
-					lines[idx]="[IPV4 MATCH]"+lines[idx]+"[IPV4 MATCH]"
+					lines[idx]="[IPV4 MATCH]"+lines[idx]
 
 
 	#if ipv6Flag is set, check for matches with [0000-ffff]:[0000-ffff]:[0000-ffff]:[0000-ffff]:[0000-ffff]:[0000-ffff]:[0000-ffff]:[0000-ffff]
@@ -133,7 +139,7 @@ def main(argv):
 			for idx,line in enumerate(lines):
 				if re.search(match_expr,line):
 					print(lines[idx])
-					lines[idx]="[IPV6 MATCH]"+lines[idx]+"[IPV6 MATCH]"					
+					lines[idx]="[IPV6 MATCH]"+lines[idx]			
 					print(lines[idx])
 
 	#Exit if intersection is empty
@@ -142,7 +148,7 @@ def main(argv):
 	print_log(lines)
 
 def print_usage():
-	print("Usage: python3 util.py [OPTION]... [FILE]\n\
+	print("Usage: ./util.py [OPTION]... [FILE]\n\
 \n\
 Supported options:\n\
 ---------------------\n\
@@ -152,8 +158,8 @@ Supported options:\n\
 	-t, --timestamps Print lines that contain a timestamp in HH:MM:SS format\n\
 	-i, --ipv4 Print lines that contain an IPv4 address\n\
 	-I, --ipv6 Print lines that contain an IPv6 address (standard notation)\n\
-	-m, --ipv4m Print lines that contain an IPv4 address, matching IPs are highlighted\n\
-	-M, --ipv6m Print lines that contain an IPv6 address (standard notation), matching IPs are highlighted\n")
+	-m, --ipv4m Print lines that contain an IPv4 address, matching IPs are highlighted, accepts wildcards *\n\
+	-M, --ipv6m Print lines that contain an IPv6 address (standard notation), matching IPs are highlighted, accepts wildcards *\n")
 
 def check_no_intersect(lines):
 	if lines==[]:
