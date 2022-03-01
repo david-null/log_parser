@@ -25,7 +25,7 @@ test03.log - Simple log file with line numbers listed for testing -f, -l, -i, -I
 test04.log - Simple log file with line numbers listed for testing -f, -l, -t, -i, -I, -m, -M
 
 test05.log - Large log file from one of my projects, contains timestamps
-test06.log - Large log file frin one of my projects, containts timestamps, ip addresses
+test06.log - Large log file from one of my projects, contains timestamps, ip addresses
 
 Examples:
 ---------------------
